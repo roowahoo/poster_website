@@ -24,13 +24,15 @@ app.use(
 );
 
 const landingRoutes=require ('./routes/landing')
+const productRoutes=require('./routes/products')
 
 async function main() {
   app.use('/',landingRoutes)
+  app.use('/products',productRoutes)
 }
 
 main();
 
-app.listen(3000, () => {
+app.listen(3010, () => {
   console.log("Server has started");
 });
