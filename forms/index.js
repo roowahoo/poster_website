@@ -26,7 +26,7 @@ var bootstrapField = function (name, object) {
     return '<div class="form-group">' + label + widget + error + '</div>';
 };
 
-const createProductForm = (categories) => {
+const createProductForm = (categories,tags) => {
     return forms.create({
         'title':fields.string({
             required:true,
@@ -93,7 +93,26 @@ const createProductForm = (categories) => {
             },
             widget: widgets.select(),
             choices: categories
-        })
+        }),
+        'tags':fields.string({
+            label:'Tags',
+            required:true,
+            errorAfterField:true,
+            cssClasses:{
+                label:['form-label']
+            },
+            widget:forms.widgets.multipleSelect(),
+            //choices is set to all tags from the 'tags' table
+            choices:tags
+        }),
+        // 'image_url':fields.string({
+        //     required:true,
+        //     errorAfterField:true,
+        //     widgets:widgets.hidden()
+
+        // })
+            
+        
     })
 };
 

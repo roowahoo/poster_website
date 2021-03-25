@@ -12,6 +12,7 @@
             <th>Width</th>
             <th>Stock</th>
             <th>Category</th>
+            <th>Tags</th>
         </tr>
     </thead>
     <tbody>
@@ -25,6 +26,11 @@
             <td>{{this.width}}</td>
             <td>{{this.stock}}</td>
             <td>{{this.category.name}}</td>
+            <td>
+                {{#each this.tags}}
+                <span class="badge badge-pill badge-primary">{{this.name}}</span>
+                {{/each}}
+            </td>
         </tr>
         {{/each}}
     </tbody>

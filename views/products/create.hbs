@@ -4,8 +4,20 @@
 <h1>Create New Product</h1>
 <form method="POST">
     {{{form}}}
-    <input type="submit" value="Add Product" class="btn btn-primary"/>
-    {{/block}}
+    <div>
+        <a href='#' class="btn btn-primary" id="upload_widget">Upload</a>
+    </div>
+    <input type="submit" value="Add Product" class="btn btn-primary" />
+
 </form>
+{{/block}}
+{{#block 'js'}}
+<script src='https://widget.cloudinary.com/v2.0/global/all.js'></script>
+<script>
+    const cloudName = '{{cloudinaryName}}'
+    const apiKey = '{{cloudinaryApiKey}}'
+    const uploadPreset = '{{cloudinaryPreset}}'
+</script>
+{{/block}}
 
 {{/extends}}
