@@ -19,6 +19,11 @@
         {{#each posters}}
         <tr>
             <td>{{this.id}}</td>
+            <td>
+                {{#if this.image_url}}
+                <img class="img-thumbnail" src="{{this.image_url}}"/>
+                {{/if}}
+            </td>
             <td>{{this.title}}</td>
             <td>{{this.description}}</td>
             <td>{{this.cost}}</td>
@@ -30,6 +35,11 @@
                 {{#each this.tags}}
                 <span class="badge badge-pill badge-primary">{{this.name}}</span>
                 {{/each}}
+            </td>
+            <td>
+                <a href="/shoppingCart/{{this.id}}/add" class="btn btn-primary btn-sm">Add to Cart</a>
+                <a href="/products/{{this.id}}/update" class="btn btn-primary btn-sm">Update</a>
+                <a href="/products/{{this.id}}/delete" class="btn btn-danger btn-sm">Delete</a>
             </td>
         </tr>
         {{/each}}

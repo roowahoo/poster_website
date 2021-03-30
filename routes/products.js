@@ -1,11 +1,15 @@
 const express = require("express");
 const router = express.Router();
+const { checkIfAuthenticated } = require('../middlewares');
 
 // #1 import in the Product model
 const {Product, Category, Tag} = require('../models')
 
 // import in the Forms
 const { bootstrapField, createProductForm } = require('../forms');
+
+//import DAL
+const productDataLayer=require('../dal/product')
 
 router.get('/', async (req,res)=>{
     // #2 - fetch all the products (ie, SELECT * from products)
@@ -23,13 +27,16 @@ router.get('/', async (req,res)=>{
 module.exports = router;
 
 router.get('/create', async (req, res) => {
-    const allCategories = await Category.fetchAll().map((category) => {
-        return [category.get('id'), category.get('name')]
-    });
 
-    const allTags = await Tag.fetchAll().map((tag)=>{
-        return[tag.get('id'),tag.get('name')]
-    })
+    const allCategories=await productDataLayer.getAllCategories()
+    const allTags=await productDataLayer.getAlltags()
+    // const allCategories = await Category.fetchAll().map((category) => {
+    //     return [category.get('id'), category.get('name')]
+    // });
+
+    // const allTags = await Tag.fetchAll().map((tag)=>{
+    //     return[tag.get('id'),tag.get('name')]
+    // })
     
 
     const productForm = createProductForm(allCategories,allTags);
@@ -41,16 +48,12 @@ router.get('/create', async (req, res) => {
     })
 })
 
-router.post('/create', async(req,res)=>{
-    const allCategories = await Category.fetchAll().map((category) => {
-        return [category.get('id'), category.get('name')]
-    });
+router.post('/create',  async(req,res)=>{
+    const allCategories = await productDataLayer.getAllCategories()
 
-    const allTags = await (await Tag.fetchAll()).map((tag)=>{
-        return[tag.get('id'),tag.get('name')]
-    })
+    const allTags = await productDataLayer.getAlltags()
 
-    const productForm = createProductForm();
+    const productForm = createProductForm(allCategories,allTags);
 
     productForm.handle(req, {
         'success': async (form) => {
@@ -71,9 +74,11 @@ router.post('/create', async(req,res)=>{
             if (tags) {
                 await newProduct.tags().attach(tags.split(","))
             }
+            req.flash('success_messages',  `New Product ${newProduct.get('title')} has been created`)
             res.redirect('/products');
         },
         'error': async (form) => {
+            req.flash('error_messages','Please correct all errors and try again')
             res.render('products/create', {
                 'form': form.toHTML(bootstrapField)
             })
@@ -83,22 +88,20 @@ router.post('/create', async(req,res)=>{
 
 router.get('/:product_id/update', async (req, res) => {
     // fetch all the categories
-    const allCategories = await Category.fetchAll().map((category)=>{
-        return [category.get('id'), category.get('name')];
-    })
-
-    const allTags=await Tag.fetchAll().map((tag)=>{
-        return[tag.get('id'),tag.get('name')]
-    })
+    const allCategories = await productDataLayer.getAllCategories()
+    const allTags=await productDataLayer.getAlltags()
 
     // retrieve the product
-    const productId = req.params.product_id
-    const productToEdit = await Product.where({
-        'id': productId
-    }).fetch({
-        required: true,
-        withRelated:['tags']
-    });
+    const productToEdit=await productDataLayer.getProductById(req.params.product_id)
+
+    // //retrieve product(old version)
+    // const productId = req.params.product_id
+    // const productToEdit = await Product.where({
+    //     'id': productId
+    // }).fetch({
+    //     require: true,
+    //     withRelated:['tags']
+    // });
 
     // console.log(productToEdit)
     const productJSON = productToEdit.toJSON();
@@ -118,10 +121,14 @@ router.get('/:product_id/update', async (req, res) => {
     productForm.fields.date.value=productToEdit.get('date');
     productForm.fields.category_id.value = productToEdit.get('category_id');
     productForm.fields.tags.value = selectedTagIds;
+    productForm.fields.image_url.value=productToEdit.get('image_url')
 
     res.render('products/update', {
         'form': productForm.toHTML(bootstrapField),
-        'product': productToEdit.toJSON()
+        'product': productToEdit.toJSON(),
+        cloudinaryName: process.env.CLOUDINARY_NAME,
+        cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+        cloudinaryPreset: process.env.CLOUDINARY_UPLOAD_PRESETS
     })
 
 })
@@ -129,19 +136,22 @@ router.get('/:product_id/update', async (req, res) => {
 router.post('/:product_id/update', async (req, res) => {
 
     // fetch the product that we want to update
-    const productToEdit = await Product.where({
-        'id': req.params.product_id
-    }).fetch({
-        required: true
-    });
+    const productToEdit = await productDataLayer.getProductById(req.params.product_id)
+    const productJSON=productToEdit.toJSON()
+    const existingTagsId=productJSON.tags.map(t => t.id)
 
     //process the form
     const productForm = createProductForm();
     productForm.handle(req, {
         'success': async (form) => {
-            productToEdit.set(form.data)
+            let {tags,...productData}=form.data
+            productToEdit.set(productData)
             productToEdit.save();
-            res.redirect('/products');
+            let newTagsId = tags.split(",")
+            productToEdit.tags().detach(existingTagsId);
+            productToEdit.tags().attach(newTagsId);
+            req.flash('success_messages', "Product has been updated")
+            res.redirect('/products')
         },
         'error': async (form) => {
             res.render('products/update', {
@@ -153,24 +163,17 @@ router.post('/:product_id/update', async (req, res) => {
 })
 
 router.get('/:product_id/delete', async (req,res)=>{
-    const product=await Product.where({
-        'id':req.params.product_id
-    }).fetch({
-        required:true
-    });
+    const productToDelete=await productDataLayer.getProductById(req.params.product_id)
+    console.log(productToDelete.toJSON())
     res.render('products/delete',{
-        'product':product
+        'product':productToDelete
     })
 })
 
 router.post('/:product_id/delete', async(req,res)=>{
     // fetch the product that we want to delete
-    const product = await Product.where({
-        'id': req.params.product_id
-    }).fetch({
-        required: true
-    });
-    await product.destroy();
+    const productToDelete=await productDataLayer.getProductById(req.params.product_id)
+    await productToDelete.destroy();
     res.redirect('/products')
 })
 

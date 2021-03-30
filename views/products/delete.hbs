@@ -1,10 +1,11 @@
 {{#extends 'base'}}
 {{#block 'content'}}
-<h1>Deleting {{product.name}}</h1>
+<h1>Deleting {{product.title}}</h1>
 
 <form method="POST">
     <div class="alert alert-danger">
-        <p>Are you sure you want to delete {{product.name}}?</p>
+        <input type="hidden" name="_csrf" value="{{csrfToken}}" />
+        <p>Are you sure you want to delete {{product.title}}?</p>
         <input type="submit" class="btn btn-danger" value="Yes"/>
         <a href="/products" class="btn btn-success">No</a>
     </div>

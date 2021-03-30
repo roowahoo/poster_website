@@ -26,13 +26,13 @@ var bootstrapField = function (name, object) {
     return '<div class="form-group">' + label + widget + error + '</div>';
 };
 
-const createProductForm = (categories,tags) => {
+const createProductForm = (categories, tags) => {
     return forms.create({
-        'title':fields.string({
-            required:true,
-            errorAfterField:true,
-            cssClasses:{
-                label:['form-label']
+        'title': fields.string({
+            required: true,
+            errorAfterField: true,
+            cssClasses: {
+                label: ['form-label']
             }
         }),
         'height': fields.string({
@@ -41,7 +41,7 @@ const createProductForm = (categories,tags) => {
             cssClasses: {
                 label: ['form-label']
             },
-            'validators':[validators.integer()]
+            'validators': [validators.integer()]
         }),
         'width': fields.string({
             required: true,
@@ -49,7 +49,7 @@ const createProductForm = (categories,tags) => {
             cssClasses: {
                 label: ['form-label']
             },
-            'validators':[validators.integer()]
+            'validators': [validators.integer()]
         }),
         'cost': fields.string({
             required: true,
@@ -57,7 +57,7 @@ const createProductForm = (categories,tags) => {
             cssClasses: {
                 label: ['form-label']
             },
-            'validators':[validators.integer()]
+            'validators': [validators.integer()]
         }),
 
         'description': fields.string({
@@ -73,7 +73,7 @@ const createProductForm = (categories,tags) => {
             cssClasses: {
                 label: ['form-label']
             },
-            'validators':[validators.integer()]
+            'validators': [validators.integer()]
         }),
         'date': fields.date({
             required: true,
@@ -81,11 +81,11 @@ const createProductForm = (categories,tags) => {
             cssClasses: {
                 label: ['form-label']
             },
-            widget:widget.date()
+            widget: widget.date()
         }),
 
         'category_id': fields.string({
-            label:'Category',
+            label: 'Category',
             required: true,
             errorAfterField: true,
             cssClasses: {
@@ -94,26 +94,81 @@ const createProductForm = (categories,tags) => {
             widget: widgets.select(),
             choices: categories
         }),
-        'tags':fields.string({
-            label:'Tags',
+        'tags': fields.string({
+            label: 'Tags',
+            required: true,
+            errorAfterField: true,
+            cssClasses: {
+                label: ['form-label']
+            },
+            widget: forms.widgets.multipleSelect(),
+            //choices is set to all tags from the 'tags' table
+            choices: tags
+        }),
+        'image_url':fields.string({
+            required:true,
+            errorAfterField:true,
+            widget:widgets.hidden()
+
+        })
+
+
+    })
+};
+
+const createRegistrationForm = () => {
+    return forms.create({
+        'username': fields.string({
+            required: true,
+            errorAfterField: true,
+            cssClasses: {
+                label: ['form-label']
+            }
+        }),
+        'email': fields.string({
+            required: true,
+            errorAfterField: true,
+            cssClasses: {
+                label: ['form-label']
+            }
+        }),
+        'password': fields.password({
+            required: true,
+            errorAfterField: true,
+            cssClasses: {
+                label: ['form-label']
+            }
+        }),
+        'confirm_password': fields.password({
+            required: true,
+            errorAfterField: true,
+            cssClasses: {
+                label: ['form-label']
+            },
+            validators: [validators.matchField('password')]
+        })
+    })
+}
+
+const createLoginForm=()=>{
+    return forms.create({
+        'email':fields.string({
             required:true,
             errorAfterField:true,
             cssClasses:{
                 label:['form-label']
             },
-            widget:forms.widgets.multipleSelect(),
-            //choices is set to all tags from the 'tags' table
-            choices:tags
-        }),
-        // 'image_url':fields.string({
-        //     required:true,
-        //     errorAfterField:true,
-        //     widgets:widgets.hidden()
-
-        // })
             
-        
+        }),
+        'password':fields.string({
+            required:true,
+            errorAfterField:true,
+            cssClasses:{
+                label:['form-label']
+            },
+            
+        })
     })
-};
+}
 
-module.exports = { createProductForm, bootstrapField };
+module.exports = { createProductForm, bootstrapField, createRegistrationForm,createLoginForm };
